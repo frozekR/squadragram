@@ -36,6 +36,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  backend:
+    build:
+      context: ./squadragram-backend
+      dockerfile: Dockerfile
+    container_name: squadragram-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
   frontend:
     build:
       context: ./squadragram-frontend

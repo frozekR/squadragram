@@ -67,24 +67,24 @@ const roleIcons: Record<string, React.ReactNode> = {
 	),
 };
 
-interface HeroCardProps {
+interface CharacterCardProps {
 	id: string | number;
 	name: string;
 	imageUrl: string;
 	role?: string;
 }
 
-export default function HeroCard({
+export default function CharacterCard({
 	id,
 	name,
 	imageUrl,
 	role = "default",
-}: HeroCardProps) {
+}: CharacterCardProps) {
 	// Получаем стили в зависимости от роли (приводим к нижнему регистру на случай опечаток)
 	const normalizedRole = role.toLowerCase();
 	const styles = roleStyles[normalizedRole] || roleStyles.default;
 	const roleIcon = roleIcons[normalizedRole];
-	const linkHref = `/heroes/${id}`;
+	const linkHref = `/characters/${id}`;
 
 	return (
 		<a

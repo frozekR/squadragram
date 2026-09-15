@@ -42,11 +42,11 @@ export default function Header() {
 				</a>
 				<span className="hidden sm:inline opacity-50">|</span>
 
-				<a href="/heroes/" className="hover:text-blue-200 transition-colors">
+				<a href="/characters/" className="hover:text-blue-200 transition-colors">
 					Heroes
 				</a>
 				<span className="hidden sm:inline opacity-50">|</span>
-        
+
 				{/* --- DROPDOWN С АНИМАЦИЕЙ И ЗАКРЫТИЕМ ПО КЛИКУ ВНЕ --- */}
 				{/* Привязываем ref к обертке */}
 				<div className="relative" ref={dropdownRef}>

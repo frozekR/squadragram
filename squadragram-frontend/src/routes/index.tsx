@@ -1,4 +1,5 @@
-import HeroCard from '#/components/HeroCard'
+import CharacterCard from '#/components/CharacterCard'
+import { CharactersList } from '#/components/CharactersList'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
@@ -34,24 +35,7 @@ function Home() {
       <section className="mt-8 p-2">
         <h2 className="text-2xl font-semibold mb-2">Featured Characters</h2>
         <div className="flex flex-wrap gap-4">
-      <HeroCard
-        id={1}
-        name="Super Gogeta"
-        imageUrl="../placeholder_media/gogeta.png"
-        role="technical"
-      />
-      <HeroCard
-        id={2}
-        name="Super Saiyan Goku"
-        imageUrl="../placeholder_media/goku.png"
-        role="damage"
-      />
-      <HeroCard
-        id={3}
-        name="Супер Сайян Бог Веджета"
-        imageUrl="../placeholder_media/god_vegeta.png"
-        role="tank"
-      />
+        <CharactersList></CharactersList>
       </div>
       </section>
       <section className="mt-8 p-2">

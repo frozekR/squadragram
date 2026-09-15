@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 
-type HeroData = {
+type CharacterData = {
   name?: string;
   bio?: string;
   skins?: unknown[];
@@ -10,18 +10,18 @@ type HeroData = {
 };
 
 type TabProps = {
-  data?: HeroData;
+  data?: CharacterData;
 };
 
-const previewHero: HeroData = {
+const previewCharacter: CharacterData = {
   name: 'Preview',
-  bio: 'This local preview keeps the hero layout available while backend data is being prepared.',
+  bio: 'This local preview keeps the character layout available while backend data is being prepared.',
   skins: ['Default skin', 'Battle skin'],
   emotes: ['Victory', 'Laugh'],
   superAttacks: ['Meteor Strike'],
 };
 
-export const Route = createFileRoute('/heroes/$heroId')({
+export const Route = createFileRoute('/characters/$characterId')({
   component: HeroPage,
 });
 
@@ -33,7 +33,7 @@ const SuperAttacksTab = ({ data }: TabProps) => <div className="text-gray-700">Ð
 
 export default function HeroPage() {
   const [activeTab, setActiveTab] = useState('details');
-  const hero = { ...previewHero, name: `${previewHero.name}` };
+  const hero = { ...previewCharacter, name: `${previewCharacter.name}` };
 
   const tabs = [
     { id: 'details', label: 'Details' },

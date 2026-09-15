@@ -5,7 +5,11 @@ import (
 	"log"
 	"os"
 
+	characterhandler "squadraton-backend/internal/handler/character"
+	characterrepository "squadraton-backend/internal/repository/character"
+
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,12 +21,14 @@ func main() {
 	defer db.Close()
 
 	app := fiber.New()
+	app.Use(cors.New())
+	characterhandler.NewHandler(characterrepository.NewRepository(db)).Register(app.Group("/api"))
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":" + envOrDefault("PORT", "3001")))
 }
 
 func databaseURL() string {

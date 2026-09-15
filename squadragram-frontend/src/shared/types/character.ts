@@ -1,11 +1,11 @@
-export type CharacterRole = 'DAMAGE' | 'TANK' | 'TECHNIC'
+export type CharacterRole = 'DAMAGE' | 'TANK' | 'TECHNICAL'
 
 export interface Character {
-  ID: number;
-  UUID: string; 
-  Name: string;
-  Description: string;
-  Role: CharacterRole;
+  id: number
+  uuid: string
+  name: string
+  description: string
+  role: CharacterRole
 }
 
 export interface CharacterFilter {
