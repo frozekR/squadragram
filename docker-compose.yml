@@ -36,6 +36,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  frontend:
+    build:
+      context: ./squadragram-frontend
+      dockerfile: Dockerfile
+    container_name: squadragram-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
 volumes:
   postgres_data:

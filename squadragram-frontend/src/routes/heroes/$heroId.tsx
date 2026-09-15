@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, useParams } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 type HeroData = {
   name?: string;
