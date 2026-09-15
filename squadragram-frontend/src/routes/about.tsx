@@ -11,7 +11,7 @@ export const Route = createFileRoute('/about')({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'About Squadraton',
+        title: 'About Squadragram',
       },
     ],
     links: [
