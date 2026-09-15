@@ -1,4 +1,3 @@
-import CharacterCard from '#/components/CharacterCard'
 import { CharactersList } from '#/components/CharactersList'
 import { createFileRoute } from '@tanstack/react-router'
 

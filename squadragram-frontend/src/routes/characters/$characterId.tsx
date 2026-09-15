@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
+import { useCharacter } from '#/hooks/useCharacter';
 
 type CharacterData = {
-  name?: string;
+  id: number;
+  name: string;
+  role: string;
+  description: string;
   bio?: string;
   skins?: unknown[];
   emotes?: unknown[];
@@ -11,14 +15,6 @@ type CharacterData = {
 
 type TabProps = {
   data?: CharacterData;
-};
-
-const previewCharacter: CharacterData = {
-  name: 'Preview',
-  bio: 'This local preview keeps the character layout available while backend data is being prepared.',
-  skins: ['Default skin', 'Battle skin'],
-  emotes: ['Victory', 'Laugh'],
-  superAttacks: ['Meteor Strike'],
 };
 
 export const Route = createFileRoute('/characters/$characterId')({
@@ -33,7 +29,22 @@ const SuperAttacksTab = ({ data }: TabProps) => <div className="text-gray-700">Ð
 
 export default function HeroPage() {
   const [activeTab, setActiveTab] = useState('details');
-  const hero = { ...previewCharacter, name: `${previewCharacter.name}` };
+  const { characterId } = useParams({ from: '/characters/$characterId' });
+  const characterIdNumber = Number(characterId);
+  const { data: character, isLoading, isError } = useCharacter(characterIdNumber);
+
+  if (isLoading) {
+    return <div className="p-8 text-gray-700">Loading character...</div>;
+  }
+
+  if (isError || !character) {
+    return <div className="p-8 text-red-500">Failed to load character.</div>;
+  }
+
+  const hero: CharacterData = {
+    ...character,
+    bio: character.description,
+  };
 
   const tabs = [
     { id: 'details', label: 'Details' },
