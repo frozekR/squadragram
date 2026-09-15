@@ -39,7 +39,6 @@ function Home() {
         name="Super Gogeta"
         imageUrl="../placeholder_media/gogeta.png"
         role="ranged"
-        isNew={true}
       />
       <CharacterCard
         id={2}

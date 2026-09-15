@@ -46,17 +46,7 @@ export default function Header() {
 					Heroes
 				</a>
 				<span className="hidden sm:inline opacity-50">|</span>
-
-				<a href="#" className="hover:text-blue-200 transition-colors">
-					Guides
-				</a>
-				<span className="hidden sm:inline opacity-50">|</span>
-
-				<a href="#" className="hover:text-blue-200 transition-colors">
-					Database
-				</a>
-				<span className="hidden sm:inline opacity-50">|</span>
-
+        
 				{/* --- DROPDOWN С АНИМАЦИЕЙ И ЗАКРЫТИЕМ ПО КЛИКУ ВНЕ --- */}
 				{/* Привязываем ref к обертке */}
 				<div className="relative" ref={dropdownRef}>
