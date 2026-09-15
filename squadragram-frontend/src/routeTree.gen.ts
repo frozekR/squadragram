@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as HeroesIndexRouteImport } from './routes/heroes/index'
+import { Route as HeroesHeroIdRouteImport } from './routes/heroes/$heroId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +24,49 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HeroesIndexRoute = HeroesIndexRouteImport.update({
+  id: '/heroes/',
+  path: '/heroes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HeroesHeroIdRoute = HeroesHeroIdRouteImport.update({
+  id: '/heroes/$heroId',
+  path: '/heroes/$heroId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/heroes/$heroId': typeof HeroesHeroIdRoute
+  '/heroes/': typeof HeroesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/heroes/$heroId': typeof HeroesHeroIdRoute
+  '/heroes': typeof HeroesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/heroes/$heroId': typeof HeroesHeroIdRoute
+  '/heroes/': typeof HeroesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths: '/' | '/about' | '/heroes/$heroId' | '/heroes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to: '/' | '/about' | '/heroes/$heroId' | '/heroes'
+  id: '__root__' | '/' | '/about' | '/heroes/$heroId' | '/heroes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  HeroesHeroIdRoute: typeof HeroesHeroIdRoute
+  HeroesIndexRoute: typeof HeroesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +85,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/heroes/': {
+      id: '/heroes/'
+      path: '/heroes'
+      fullPath: '/heroes/'
+      preLoaderRoute: typeof HeroesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/heroes/$heroId': {
+      id: '/heroes/$heroId'
+      path: '/heroes/$heroId'
+      fullPath: '/heroes/$heroId'
+      preLoaderRoute: typeof HeroesHeroIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  HeroesHeroIdRoute: HeroesHeroIdRoute,
+  HeroesIndexRoute: HeroesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -4,8 +4,8 @@ import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
 import appCss from '../styles.css?url'
-import Footer from '#/shared/ui/Footer'
-import Header from '#/shared/ui/Header'
+import Footer from '#/components/ui/Footer'
+import Header from '#/components/ui/Header'
 
 const queryClient = new QueryClient({
   defaultOptions: {

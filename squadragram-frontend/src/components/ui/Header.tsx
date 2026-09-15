@@ -42,7 +42,7 @@ export default function Header() {
 				</a>
 				<span className="hidden sm:inline opacity-50">|</span>
 
-				<a href="/character/" className="hover:text-blue-200 transition-colors">
+				<a href="/heroes/" className="hover:text-blue-200 transition-colors">
 					Heroes
 				</a>
 				<span className="hidden sm:inline opacity-50">|</span>

@@ -5,13 +5,25 @@ const roleStyles: Record<
 		shadow: string;
 	}
 > = {
+	damage: {
+		border: "border-red-500",
+		shadow: "shadow-lg",
+	},
+	tank: {
+		border: "border-green-500",
+		shadow: "shadow-lg",
+	},
+	technical: {
+		border: "border-blue-500",
+		shadow: "shadow-lg",
+	},
 	ranged: {
 		border: "border-blue-500",
-		shadow: "shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+		shadow: "shadow-lg",
 	},
 	melee: {
 		border: "border-red-500",
-		shadow: "shadow-[0_0_15px_rgba(239,68,68,0.5)]",
+		shadow: "shadow-lg",
 	},
 	default: {
 		border: "border-gray-500",
@@ -20,6 +32,9 @@ const roleStyles: Record<
 };
 
 const roleIcons: Record<string, React.ReactNode> = {
+	damage: (<img src="../placeholder_media/roles/icon_damage.png" alt="Damage" />),
+	tank: (<img src="../placeholder_media/roles/icon_tank.png" alt="Tank" />),
+	technical: (<img src="../placeholder_media/roles/icon_technical.png" alt="Technical" />),
 	melee: (
 		<svg
 			viewBox="0 0 24 24"
@@ -52,24 +67,24 @@ const roleIcons: Record<string, React.ReactNode> = {
 	),
 };
 
-interface CharacterCardProps {
+interface HeroCardProps {
 	id: string | number;
 	name: string;
 	imageUrl: string;
 	role?: string;
 }
 
-export default function CharacterCard({
+export default function HeroCard({
 	id,
 	name,
 	imageUrl,
 	role = "default",
-}: CharacterCardProps) {
+}: HeroCardProps) {
 	// Получаем стили в зависимости от роли (приводим к нижнему регистру на случай опечаток)
 	const normalizedRole = role.toLowerCase();
 	const styles = roleStyles[normalizedRole] || roleStyles.default;
 	const roleIcon = roleIcons[normalizedRole];
-	const linkHref = `/character/${id}`;
+	const linkHref = `/heroes/${id}`;
 
 	return (
 		<a
