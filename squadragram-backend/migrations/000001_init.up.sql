@@ -1,6 +1,7 @@
 CREATE TYPE character_role AS ENUM ('DAMAGE', 'TANK', 'TECHNICAL', 'MELEE', 'RANGED');
-CREATE TYPE skill_type AS ENUM ('PASSIVE', 'RUSH_ATTACK', 'SKILL', 'SUPER_ATTACK', 'TRANSFORMATION');
-CREATE TYPE owner_type AS ENUM ('CHARACTER', 'SKILL');
+CREATE TYPE skill_type AS ENUM ('PASSIVE', 'RUSH_ATTACK', 'SKILL', 'SUPER_ATTACK', 'MAX_SUPER_ATTACK', 'TRANSFORMATION');
+CREATE TYPE emotes_type AS ENUM ('INTRO', 'MVP', 'FINISHER', 'DUAL_FINISHER', 'VICTORY');
+CREATE TYPE owner_type AS ENUM ('CHARACTER', 'SKILL', 'EMOTE', 'SKIN');
 CREATE TYPE media_type AS ENUM ('ICON', 'RENDER', 'DEMO');
 
 CREATE TABLE IF NOT EXISTS characters (
@@ -20,6 +21,18 @@ CREATE TABLE IF NOT EXISTS skills (
     name VARCHAR(96) UNIQUE NOT NULL,
     description TEXT,
     type skill_type NOT NULL,
+    char_id BIGINT REFERENCES characters(id),
+
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS emotes (
+    id BIGSERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL,
+    name VARCHAR(96) UNIQUE NOT NULL,
+    description TEXT,
+    type emotes_type NOT NULL,
     char_id BIGINT REFERENCES characters(id),
 
     created_at TIMESTAMP DEFAULT now(),
