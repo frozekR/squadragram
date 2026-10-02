@@ -4,6 +4,10 @@ import (
 	"context"
 	"log"
 	"os"
+	characterhandler "squadraton-backend/internal/handler/character"
+	skillhandler "squadraton-backend/internal/handler/skill"
+	characterrepository "squadraton-backend/internal/repository/character"
+	skillrepository "squadraton-backend/internal/repository/skill"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -19,6 +23,9 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New())
+	api := app.Group("/api")
+	characterhandler.NewHandler(characterrepository.NewRepository(db)).RegisterRoutes(api)
+	skillhandler.NewHandler(skillrepository.NewRepository(db)).RegisterRoutes(api)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World!")
