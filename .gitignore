@@ -1,0 +1,5 @@
+# Local credentials. Backend .env already tracked by the project is not modified here.
+.env
+.env.local
+.env.auth
+.env.*.local

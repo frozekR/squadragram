@@ -8,6 +8,8 @@ type Character struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Role        CharacterRole `json:"role"`
+	// Медиа связываются по UUID, а не по внутреннему ID персонажа.
+	MediaMetadata []MediaMetadata `json:"media_metadata" db:"-"`
 }
 
 type CreateCharacterDTO struct {

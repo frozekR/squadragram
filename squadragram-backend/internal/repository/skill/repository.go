@@ -4,18 +4,20 @@ import (
 	"context"
 	"fmt"
 	"squadraton-backend/internal/model"
+	"squadraton-backend/internal/repository"
+	mediametadata "squadraton-backend/internal/repository/media_metadata"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
-	db *pgxpool.Pool
+	db    repository.DB
+	media *mediametadata.Repository
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+func NewRepository(db repository.DB) *Repository {
+	return &Repository{db: db, media: mediametadata.NewRepository(db)}
 }
 
 func (r *Repository) GetSkillByUUID(ctx context.Context, u uuid.UUID) (model.Skill, error) {
@@ -27,6 +29,10 @@ func (r *Repository) GetSkillByUUID(ctx context.Context, u uuid.UUID) (model.Ski
 	skill, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Skill])
 	if err != nil {
 		return model.Skill{}, fmt.Errorf("collect skill by UUID: %w", err)
+	}
+	skill.MediaMetadata, err = r.media.GetMediaMetadataByOwner(ctx, model.OwnerTypeSkill, skill.UUID)
+	if err != nil {
+		return model.Skill{}, err
 	}
 	return skill, nil
 }
@@ -55,6 +61,7 @@ func (r *Repository) CreateSkill(ctx context.Context, dto model.CreateSkillDTO) 
 	if err != nil {
 		return model.Skill{}, fmt.Errorf("collect created skill for character %s: %w", dto.CharacterUUID, err)
 	}
+	skill.MediaMetadata = []model.MediaMetadata{}
 	return skill, nil
 }
 
@@ -67,5 +74,34 @@ func (r *Repository) collectSkills(ctx context.Context, query string, args []any
 	if err != nil {
 		return nil, fmt.Errorf("collect skills: %w", err)
 	}
+	// Связь с медиа идёт по UUID скилла, отдельно от его связи char_id с персонажем.
+	owners := make([]uuid.UUID, len(skills))
+	for i := range skills {
+		owners[i] = skills[i].UUID
+	}
+	media, err := r.media.GetByOwners(ctx, model.OwnerTypeSkill, owners)
+	if err != nil {
+		return nil, err
+	}
+	for i := range skills {
+		skills[i].MediaMetadata = media[skills[i].UUID]
+		if skills[i].MediaMetadata == nil {
+			skills[i].MediaMetadata = []model.MediaMetadata{}
+		}
+	}
 	return skills, nil
+}
+
+func (r *Repository) UpdateSkill(ctx context.Context, u uuid.UUID, dto model.CreateSkillDTO) (model.Skill, error) {
+	query, args := QueryUpdate(u, dto)
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return model.Skill{}, fmt.Errorf("update skill: %w", err)
+	}
+	skill, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Skill])
+	if err != nil {
+		return model.Skill{}, fmt.Errorf("collect updated skill: %w", err)
+	}
+	skill.MediaMetadata, err = r.media.GetMediaMetadataByOwner(ctx, model.OwnerTypeSkill, skill.UUID)
+	return skill, err
 }

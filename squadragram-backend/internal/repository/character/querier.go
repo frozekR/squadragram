@@ -25,3 +25,10 @@ func QueryInsert(u uuid.UUID, name string, desc string, role model.CharacterRole
 	RETURNING id, uuid, name, COALESCE(description, '') AS description, role
 	`, []any{u, name, desc, role}
 }
+
+func QueryUpdate(u uuid.UUID, dto model.CreateCharacterDTO) (string, []any) {
+	return `UPDATE characters SET name = $2, description = $3, role = $4
+	WHERE uuid = $1
+	RETURNING id, uuid, name, COALESCE(description, '') AS description, role`,
+		[]any{u, dto.Name, dto.Description, dto.Role}
+}

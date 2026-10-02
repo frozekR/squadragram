@@ -12,6 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./squadragram-backend/migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/000001_init.up.sql:ro
+      - ./squadragram-backend/migrations/000002_skill_order.up.sql:/docker-entrypoint-initdb.d/000002_skill_order.up.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 5s
@@ -32,10 +33,11 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
       timeout: 5s
       retries: 10
+
   backend:
     build:
       context: ./squadragram-backend
@@ -45,12 +47,19 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
       PORT: 3001
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+      MINIO_ENDPOINT: minio:9005
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: 12345678
+      MINIO_BUCKET: squadragram-media
     ports:
       - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
-  
+      minio:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   minio_data:

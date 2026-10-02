@@ -1,97 +1,141 @@
-import { useState } from 'react';
-import { createFileRoute, useParams } from '@tanstack/react-router';
-import { useCharacter } from '#/hooks/useCharacter';
+﻿import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { findMediaURL } from "#/api/media";
+import { MediaImage } from "#/components/MediaImage";
+import { SkillSelector } from "#/components/SkillSelector";
+import { useCharacter } from "#/hooks/useCharacter";
+import { useCharacterSkills } from "#/hooks/useCharacterSkills";
 
-type CharacterData = {
-  id: number;
-  name: string;
-  role: string;
-  description: string;
-  bio?: string;
-  skins?: unknown[];
-  emotes?: unknown[];
-  superAttacks?: unknown[];
-};
-
-type TabProps = {
-  data?: CharacterData;
-};
-
-export const Route = createFileRoute('/characters/$characterId')({
-  component: HeroPage,
+export const Route = createFileRoute("/characters/$characterId")({
+	component: HeroPage,
 });
 
-// Заглушки для контента вкладок
-const DetailsTab = ({ data }: TabProps) => <div className="text-gray-700">Детали: {data?.bio || 'Нет данных'}</div>;
-const SkinsTab = ({ data }: TabProps) => <div className="text-gray-700">Скины: {data?.skins?.length || 0} шт.</div>;
-const EmotesTab = ({ data }: TabProps) => <div className="text-gray-700">Эмоции: {data?.emotes?.length || 0} шт.</div>;
-const SuperAttacksTab = ({ data }: TabProps) => <div className="text-gray-700">Супер атаки: {data?.superAttacks?.length || 0} шт.</div>;
+function HeroPage() {
+	const [activeTab, setActiveTab] = useState("skills");
+	// Resolve the sequential ID from the URL before requesting skills by UUID.
+	const { characterId } = Route.useParams();
+	const characterQuery = useCharacter(characterId);
+	const skillsQuery = useCharacterSkills(characterQuery.data?.uuid);
+	const character = characterQuery.data;
 
-export default function HeroPage() {
-  const [activeTab, setActiveTab] = useState('details');
-  const { characterId } = useParams({ from: '/characters/$characterId' });
-  const characterIdNumber = Number(characterId);
-  const { data: character, isLoading, isError } = useCharacter(characterIdNumber);
+	if (characterQuery.isLoading)
+		return (
+			<main className="hero-page content-status" aria-live="polite">
+				Loading hero…
+			</main>
+		);
+	if (characterQuery.isError || !character)
+		return (
+			<main className="hero-page content-status" role="alert">
+				<h1>Could not load this hero.</h1>
+				<p>Check the link and try again.</p>
+				<button type="button" onClick={() => void characterQuery.refetch()}>
+					Try again
+				</button>
+				<Link to="/characters">Back to heroes</Link>
+			</main>
+		);
 
-  if (isLoading) {
-    return <div className="p-8 text-gray-700">Loading character...</div>;
-  }
+	const icon = findMediaURL(character.media_metadata, "ICON");
+	const render = findMediaURL(character.media_metadata, "RENDER");
+	const skills = skillsQuery.data || [];
+	const tabs = [
+		{
+			id: "skills",
+			label: `Скиллы`,
+		},
+		{ id: "skins", label: "Скины" },
+		{ id: "emotes", label: "Эмоции" },
+	];
 
-  if (isError || !character) {
-    return <div className="p-8 text-red-500">Failed to load character.</div>;
-  }
-
-  const hero: CharacterData = {
-    ...character,
-    bio: character.description,
-  };
-
-  const tabs = [
-    { id: 'details', label: 'Details' },
-    { id: 'skins', label: 'Skins' },
-    { id: 'emotes', label: 'Emotes' },
-    { id: 'super-attacks', label: '(MAX) Super Attacks' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-10 px-4">
-      
-      {/* Заголовок страницы */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 uppercase tracking-wide">
-        Hero {hero?.name} Details
-      </h1>
-
-      {/* Навигация по вкладкам */}
-      <div className="flex flex-wrap justify-center gap-4 mb-10">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                px-8 py-2.5 rounded-full font-semibold text-black transition-all duration-300 ease-in-out
-                ${isActive 
-                  ? 'bg-blue-400 shadow-[0_0_15px_rgba(34,211,238,0.6)] scale-105' 
-                  : 'bg-gray-300 hover:bg-gray-400' 
-                }
-              `}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Область контента */}
-      <div className="w-full max-w-4xl bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        {activeTab === 'details' && <DetailsTab data={hero} />}
-        {activeTab === 'skins' && <SkinsTab data={hero} />}
-        {activeTab === 'emotes' && <EmotesTab data={hero} />}
-        {activeTab === 'super-attacks' && <SuperAttacksTab data={hero} />}
-      </div>
-
-    </div>
-  );
+	return (
+		<main className="hero-page">
+			<Link to="/characters" className="back-link">
+				← All heroes
+			</Link>
+			<section className={`hero-banner role-${character.role.toLowerCase()}`}>
+				<div className="hero-intro">
+					<p className="eyebrow">Профиль героя</p>
+					<h1>{character.name}</h1>
+					<span className="role-badge">{character.role}</span>
+					<p>{character.description}</p>
+				</div>
+				<MediaImage
+					key={character.uuid}
+					src={render || icon}
+					alt={character.name}
+					className="hero-art"
+					fit="contain"
+					loading="eager"
+					fallback="Арт Героя недоступен"
+				/>
+			</section>
+			<nav className="hero-tabs" aria-label="Hero sections">
+				{tabs.map((tab) => (
+					<button
+						key={tab.id}
+						type="button"
+						aria-pressed={activeTab === tab.id}
+						onClick={() => setActiveTab(tab.id)}
+					>
+						{tab.label}
+					</button>
+				))}
+			</nav>
+			<section
+				className="hero-content"
+				aria-label={tabs.find((tab) => tab.id === activeTab)?.label}
+			>
+				{activeTab === "skills" && (
+					<>
+						<div className="section-heading">
+							<div>
+								<p className="eyebrow">Moveset</p>
+								<h2>Скиллы & Атаки</h2>
+							</div>
+							<button
+								type="button"
+								className="refresh-button"
+								disabled={skillsQuery.isFetching}
+								onClick={() => void skillsQuery.refetch()}
+							>
+								{skillsQuery.isFetching ? "Обновляется..." : "Обновить"}
+							</button>
+						</div>
+						{skillsQuery.isLoading ? (
+							<p className="content-status" aria-live="polite">
+								Loading skills…
+							</p>
+						) : skillsQuery.isError ? (
+							<div className="content-status" role="alert">
+								<p>Could not load skills.</p>
+								<button
+									type="button"
+									onClick={() => void skillsQuery.refetch()}
+								>
+									Try again
+								</button>
+							</div>
+						) : skills.length === 0 ? (
+							<p className="content-status">This hero has no skills yet.</p>
+						) : (
+							<SkillSelector key={character.uuid} skills={skills} />
+						)}
+					</>
+				)}
+				{activeTab === "skins" && (
+					<div className="content-status">
+						<h2>Skins</h2>
+						<p>No skins available yet.</p>
+					</div>
+				)}
+				{activeTab === "emotes" && (
+					<div className="content-status">
+						<h2>Emotes</h2>
+						<p>No emotes available yet.</p>
+					</div>
+				)}
+			</section>
+		</main>
+	);
 }

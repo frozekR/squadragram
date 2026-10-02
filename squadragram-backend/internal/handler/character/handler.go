@@ -11,6 +11,7 @@ import (
 
 type Repository interface {
 	CreateCharacter(context.Context, model.CreateCharacterDTO) (model.Character, error)
+	UpdateCharacter(context.Context, uuid.UUID, model.CreateCharacterDTO) (model.Character, error)
 	GetCharacterByUUID(context.Context, uuid.UUID) (model.Character, error)
 	GetCharacters(context.Context) ([]model.Character, error)
 }
@@ -27,6 +28,7 @@ func (h *Handler) RegisterRoutes(router fiber.Router) {
 	router.Get("/characters", h.GetCharacters)
 	router.Get("/characters/:uuid", h.GetCharacterByUUID)
 	router.Post("/characters", h.CreateCharacter)
+	router.Put("/characters/:uuid", h.UpdateCharacter)
 }
 
 func (h *Handler) GetCharacters(c fiber.Ctx) error {
@@ -53,6 +55,18 @@ func (h *Handler) GetCharacterByUUID(c fiber.Ctx) error {
 }
 
 func (h *Handler) CreateCharacter(c fiber.Ctx) error {
+	return h.saveCharacter(c, nil)
+}
+
+func (h *Handler) UpdateCharacter(c fiber.Ctx) error {
+	u, err := httpresponse.UUIDParam(c)
+	if err != nil {
+		return httpresponse.Error(c, 400, "invalid character UUID")
+	}
+	return h.saveCharacter(c, &u)
+}
+
+func (h *Handler) saveCharacter(c fiber.Ctx, u *uuid.UUID) error {
 	var dto model.CreateCharacterDTO
 	if err := c.Bind().JSON(&dto); err != nil {
 		return httpresponse.Error(c, fiber.StatusBadRequest, "invalid JSON body")
@@ -66,9 +80,17 @@ func (h *Handler) CreateCharacter(c fiber.Ctx) error {
 	default:
 		return httpresponse.Error(c, fiber.StatusBadRequest, "invalid character role")
 	}
-	character, err := h.repository.CreateCharacter(c.Context(), dto)
+	var character model.Character
+	var err error
+	status := fiber.StatusCreated
+	if u == nil {
+		character, err = h.repository.CreateCharacter(c.Context(), dto)
+	} else {
+		character, err = h.repository.UpdateCharacter(c.Context(), *u, dto)
+		status = fiber.StatusOK
+	}
 	if err != nil {
 		return httpresponse.DatabaseError(c, err, "character not found")
 	}
-	return c.Status(fiber.StatusCreated).JSON(character)
+	return c.Status(status).JSON(character)
 }

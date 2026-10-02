@@ -10,7 +10,7 @@ import Header from '#/components/ui/Header'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: Infinity,
+      staleTime: 30_000,
       refetchOnWindowFocus: true,
       retry: 3,
     },
@@ -28,7 +28,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Squadragram',
       },
     ],
     links: [

@@ -45,6 +45,7 @@ export default function Header() {
 				<a href="/characters/" className="hover:text-blue-200 transition-colors">
 					Heroes
 				</a>
+				<a href="/admin/" className="hover:text-blue-200 transition-colors">Admin</a>
 				<span className="hidden sm:inline opacity-50">|</span>
 
 				{/* --- DROPDOWN С АНИМАЦИЕЙ И ЗАКРЫТИЕМ ПО КЛИКУ ВНЕ --- */}

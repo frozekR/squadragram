@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -12,11 +11,11 @@ const (
 	PostgresPortEnv     = "POSTGRES_PORT"
 	PostgresDBNameEnv   = "POSTGRES_DBNAME"
 
-	defaultPostgresUser     = ""
-	defaultPostgresPassword = ""
-	defaultPostgresHost     = ""
-	defaultPostgresPort     = ""
-	defaultPostgresDBName   = ""
+	defaultPostgresUser     = "postgres"
+	defaultPostgresPassword = "postgres"
+	defaultPostgresHost     = "postgres"
+	defaultPostgresPort     = "5432"
+	defaultPostgresDBName   = "postgres"
 )
 
 type Postgres struct {
@@ -35,12 +34,5 @@ func (c *Postgres) loadFromEnv() {
 	pgPort := getEnv(PostgresPortEnv, defaultPostgresPort)
 	pgDBName := getEnv(PostgresDBNameEnv, defaultPostgresDBName)
 
-	c.DSN = fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		pgUser,
-		pgPassword,
-		pgHost,
-		pgPort,
-		pgDBName,
-	)
+	c.DSN = PostgresURL(pgUser, pgPassword, pgHost, pgPort, pgDBName)
 }

@@ -1,38 +1,35 @@
-import CharacterCard from './CharacterCard'
-import { useCharacters } from '#/hooks/useCharacters'
-
-type Character = {
-  id: string | number
-  name: string
-  role: string
-}
+﻿import CharacterCard from "./CharacterCard";
+import { useCharacters } from "#/hooks/useCharacters";
 
 export const CharactersList = () => {
-  const { data: characters = [] as Character[], isLoading, isError } = useCharacters() as {
-    data?: Character[]
-    isLoading: boolean
-    isError: boolean
-  }
-
-  if (isLoading) {
-    return <p>Loading characters...</p>
-  }
-
-  if (isError) {
-    return <p>Failed to load characters.</p>
-  }
-
-  return (
-    <div className="flex flex-wrap gap-4">
-      {characters.map((character) => (
-        <CharacterCard
-          key={character.id}
-          id={character.id}
-          name={character.name}
-          role={character.role}
-          imageUrl={`/placeholder_media/roles/icon_${character.role.toLowerCase()}.png`}
-        />
-      ))}
-    </div>
-  )
-}
+	const {
+		data: characters = [],
+		isLoading,
+		isError,
+		refetch,
+	} = useCharacters();
+	if (isLoading)
+		return (
+			<p className="content-status" aria-live="polite">
+				Loading heroes…
+			</p>
+		);
+	if (isError)
+		return (
+			<div className="content-status" role="alert">
+				<p>Could not load heroes.</p>
+				<button type="button" onClick={() => void refetch()}>
+					Try again
+				</button>
+			</div>
+		);
+	if (characters.length === 0)
+		return <p className="content-status">No heroes yet.</p>;
+	return (
+		<div className="character-grid">
+			{characters.map((character) => (
+				<CharacterCard key={character.uuid} character={character} />
+			))}
+		</div>
+	);
+};

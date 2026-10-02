@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -24,12 +25,17 @@ import (
 type characterStub struct {
 	characterhandler.Repository
 	create func(model.CreateCharacterDTO) (model.Character, error)
+	update func(uuid.UUID, model.CreateCharacterDTO) (model.Character, error)
 	get    func(uuid.UUID) (model.Character, error)
 	list   func() ([]model.Character, error)
 }
 
 func (s characterStub) CreateCharacter(_ context.Context, dto model.CreateCharacterDTO) (model.Character, error) {
 	return s.create(dto)
+}
+
+func (s characterStub) UpdateCharacter(_ context.Context, u uuid.UUID, dto model.CreateCharacterDTO) (model.Character, error) {
+	return s.update(u, dto)
 }
 
 func (s characterStub) GetCharacterByUUID(_ context.Context, u uuid.UUID) (model.Character, error) {
@@ -43,6 +49,7 @@ func (s characterStub) GetCharacters(context.Context) ([]model.Character, error)
 type skillStub struct {
 	skillhandler.Repository
 	create      func(model.CreateSkillDTO) (model.Skill, error)
+	update      func(uuid.UUID, model.CreateSkillDTO) (model.Skill, error)
 	get         func(uuid.UUID) (model.Skill, error)
 	list        func() ([]model.Skill, error)
 	byCharacter func(uuid.UUID) ([]model.Skill, error)
@@ -50,6 +57,10 @@ type skillStub struct {
 
 func (s skillStub) CreateSkill(_ context.Context, dto model.CreateSkillDTO) (model.Skill, error) {
 	return s.create(dto)
+}
+
+func (s skillStub) UpdateSkill(_ context.Context, u uuid.UUID, dto model.CreateSkillDTO) (model.Skill, error) {
+	return s.update(u, dto)
 }
 
 func (s skillStub) GetSkillByUUID(_ context.Context, u uuid.UUID) (model.Skill, error) {
@@ -120,7 +131,7 @@ func TestCharacterCreateAndRead(t *testing.T) {
 		if err := json.Unmarshal(data, &got); err != nil {
 			t.Fatal(err)
 		}
-		if got != want {
+		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("character = %+v, want %+v", got, want)
 		}
 	}
@@ -129,7 +140,7 @@ func TestCharacterCreateAndRead(t *testing.T) {
 	if err := json.Unmarshal(data, &got); err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 1 || got[0] != want {
+	if len(got) != 1 || !reflect.DeepEqual(got[0], want) {
 		t.Fatalf("characters = %+v", got)
 	}
 }
@@ -193,7 +204,7 @@ func assertSkill(t *testing.T, got, want model.Skill) {
 		t.Fatalf("unexpected character link: %+v", got)
 	}
 	got.CharacterID = want.CharacterID
-	if got != want {
+	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("skill = %+v, want %+v", got, want)
 	}
 }
@@ -216,6 +227,9 @@ func TestInvalidRequestsDoNotCallRepository(t *testing.T) {
 		{"malformed character UUID", "POST", "/api/skills", `{"name":"x","description":"x","type":"SKILL","character_uuid":"bad"}`},
 		{"invalid skill type", "POST", "/api/skills", fmt.Sprintf(`{"name":"x","description":"x","type":"UNKNOWN","character_uuid":"%s"}`, u)},
 		{"missing skill description", "POST", "/api/skills", fmt.Sprintf(`{"name":"x","type":"SKILL","character_uuid":"%s"}`, u)},
+		{"negative order", "POST", "/api/skills", fmt.Sprintf(`{"name":"x","description":"x","type":"SKILL","character_uuid":"%s","sort_order":-1}`, u)},
+		{"fractional order", "POST", "/api/skills", fmt.Sprintf(`{"name":"x","description":"x","type":"SKILL","character_uuid":"%s","sort_order":1.5}`, u)},
+		{"too large order", "PUT", "/api/skills/" + u, fmt.Sprintf(`{"name":"x","description":"x","type":"SKILL","character_uuid":"%s","sort_order":2147483648}`, u)},
 	} {
 		t.Run(tc.name, func(t *testing.T) { request(t, app, tc.method, tc.path, tc.body, 400) })
 	}
@@ -269,4 +283,33 @@ func TestEmptyListsAreArrays(t *testing.T) {
 			t.Fatalf("expected [], got %s", data)
 		}
 	}
+}
+
+func TestUpdateHandlersUseUUIDAndReturnUpdatedRecords(t *testing.T) {
+	u, owner := uuid.New(), uuid.New()
+	app := fiber.New()
+	characterhandler.NewHandler(characterStub{update: func(got uuid.UUID, dto model.CreateCharacterDTO) (model.Character, error) {
+		if got != u || dto.Name != "Edited" || dto.Description != "Changed" || dto.Role != model.CharacterRoleTank {
+			t.Fatalf("update character DTO: %s %+v", got, dto)
+		}
+		return model.Character{ID: 7, UUID: got, Name: dto.Name, Description: dto.Description, Role: dto.Role}, nil
+	}}).RegisterRoutes(app.Group("/api"))
+	skillhandler.NewHandler(skillStub{update: func(got uuid.UUID, dto model.CreateSkillDTO) (model.Skill, error) {
+		if got != u || dto.CharacterUUID != owner || dto.Name != "Edited" || dto.SkillType != model.SkillTypeSkill {
+			t.Fatalf("update skill DTO: %s %+v", got, dto)
+		}
+		return model.Skill{ID: 9, UUID: got, Name: dto.Name, Description: dto.Description, SkillType: dto.SkillType}, nil
+	}}).RegisterRoutes(app.Group("/api"))
+	data := request(t, app, "PUT", "/api/characters/"+u.String(), `{"name":"Edited","description":"Changed","role":"TANK"}`, 200)
+	var hero model.Character
+	if err := json.Unmarshal(data, &hero); err != nil || hero.UUID != u || hero.ID != 7 {
+		t.Fatalf("updated hero: %s, %v", data, err)
+	}
+	data = request(t, app, "PUT", "/api/skills/"+u.String(), fmt.Sprintf(`{"name":"Edited","description":"Changed","type":"SKILL","character_uuid":"%s"}`, owner), 200)
+	var skill model.Skill
+	if err := json.Unmarshal(data, &skill); err != nil || skill.UUID != u || skill.ID != 9 {
+		t.Fatalf("updated skill: %s, %v", data, err)
+	}
+	request(t, app, "PUT", "/api/characters/7", `{}`, 400)
+	request(t, app, "PUT", "/api/skills/9", `{}`, 400)
 }

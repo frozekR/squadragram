@@ -2,6 +2,7 @@ package httpresponse
 
 import (
 	"errors"
+	"log"
 	"strings"
 	"unicode/utf8"
 
@@ -29,6 +30,7 @@ func DatabaseError(c fiber.Ctx, err error, notFound string) error {
 			return Error(c, fiber.StatusNotFound, "character not found")
 		}
 	}
+	log.Printf("database request failed: %v", err)
 	return Error(c, fiber.StatusInternalServerError, "internal server error")
 }
 
